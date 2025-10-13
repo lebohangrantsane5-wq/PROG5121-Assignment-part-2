@@ -28,6 +28,26 @@ public class Message {
         this.messageID = String.valueOf(id);
     }
 
+    // Getter for messageID
+    public String getMessageID() {
+        return messageID;
+    }
+
+    // Getter for messageText
+    public String getMessageText() {
+        return messageText;
+    }
+
+    // Getter for messageHash
+    public String getMessageHash() {
+        return messageHash;
+    }
+
+    // Getter for recipient
+    public String getRecipient() {
+        return recipient;
+    }
+
     // Check Message ID length
     public boolean checkMessageID() {
         return messageID != null && messageID.length() == 10;
@@ -110,5 +130,10 @@ public class Message {
     // Return all messages
     public static List<Message> getAllMessages() {
         return sentMessages;
+    }
+
+    // Set message number
+    public void setMessageNumber(int messageNumber) {
+        this.messageNumber = messageNumber;
     }
 }
