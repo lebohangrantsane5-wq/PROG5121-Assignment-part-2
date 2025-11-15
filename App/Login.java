@@ -4,40 +4,35 @@ public class Login extends Register {
     private int failedAttempts = 0;
     private boolean locked = false;
 
-    // Constructor that matches LoginTest
+    // Constructor
     public Login(String username, String password) {
         this.regUsername = username;
         this.regPassword = password;
     }
 
-    // Method that matches LoginTest
+    // Authenticate user with lockout logic
     public boolean authenticate(String username, String password) {
-        if (locked) {
-            return false; // already locked out
-        }
+        if (locked) return false;
 
         boolean success = loginUser(username, password);
         if (!success) {
             failedAttempts++;
-            if (failedAttempts >= 3) {
-                locked = true; // lock after 3 failures
-            }
+            if (failedAttempts >= 3) locked = true;
         } else {
-            failedAttempts = 0; // reset counter if login succeeds
+            failedAttempts = 0;
         }
-
         return success;
     }
 
-    //  Helper method so tests can check lockout status
+    // Check lockout status
     public boolean isLocked() {
         return locked;
     }
 
     public static void main(String[] args) {
-        Login login = new Login("", ""); // default constructor values
+        Login login = new Login("", "");
 
-        // Registration phase
+        // --- Registration Phase ---
         String firstName = JOptionPane.showInputDialog("Enter First Name:");
         String lastName = JOptionPane.showInputDialog("Enter Last Name:");
         String username = JOptionPane.showInputDialog("Create Username:");
@@ -47,32 +42,82 @@ public class Login extends Register {
         String regMessage = login.registerUser(username, password, cell, firstName, lastName);
         JOptionPane.showMessageDialog(null, regMessage);
 
-        if (!regMessage.equals("User successfully registered!")) {
-            return;
-        }
+        if (!regMessage.equals("User successfully registered!")) return;
 
-        // Login phase with 3 attempts
+        // --- Login Phase ---
         boolean loginStatus = false;
         for (int attempts = 1; attempts <= 3; attempts++) {
             String loginUsername = JOptionPane.showInputDialog("Enter Username to Login:");
             String loginPassword = JOptionPane.showInputDialog("Enter Password to Login:");
 
-            loginStatus = login.authenticate(loginUsername, loginPassword); // now uses lockout logic
+            loginStatus = login.authenticate(loginUsername, loginPassword);
 
-            if (loginStatus) {
-                break; // stop loop if login successful
-            } else if (login.isLocked()) {
+            if (loginStatus) break;
+
+            if (login.isLocked()) {
                 JOptionPane.showMessageDialog(null, "Too many failed attempts. Program will now exit.");
                 System.exit(0);
             } else {
-                JOptionPane.showMessageDialog(null,
-                        "Incorrect username or password. Attempts left: " + (3 - attempts));
+                JOptionPane.showMessageDialog(null, "Incorrect username or password. Attempts left: " + (3 - attempts));
             }
         }
 
-        if (loginStatus) {
-            String statusMessage = login.returnLoginStatus(true);
-            JOptionPane.showMessageDialog(null, statusMessage);
+        if (!loginStatus) return;
+
+        JOptionPane.showMessageDialog(null, login.returnLoginStatus(true));
+
+        // --- Message Management Phase ---
+        boolean running = true;
+        while (running) {
+            String option = JOptionPane.showInputDialog(
+                    "Choose an action:\n" +
+                    "1 - Send Message\n" +
+                    "2 - Store Message\n" +
+                    "3 - Disregard Message\n" +
+                    "4 - View All Sent Messages\n" +
+                    "5 - View Longest Message\n" +
+                    "6 - Delete Message by Hash\n" +
+                    "0 - Exit"
+            );
+
+            if (option == null) continue;
+
+            switch (option) {
+                case "1", "2", "3" -> {
+                    String recipient = JOptionPane.showInputDialog("Enter recipient number:");
+                    String text = JOptionPane.showInputDialog("Enter your message:");
+
+                    Message msg = new Message(Message.returnTotalMessages() + 1);
+                    msg.checkRecipientCell(recipient);
+                    msg.checkMessageLength(text);
+                    msg.createMessageHash();
+
+                    String result = switch (option) {
+                        case "1" -> msg.sendMessage("send");
+                        case "2" -> msg.sendMessage("store");
+                        default -> msg.sendMessage("disregard");
+                    };
+
+                    JOptionPane.showMessageDialog(null, result);
+                }
+                case "4" -> {
+                    String report = Message.displayFullReport();
+                    JOptionPane.showMessageDialog(null, report);
+                }
+                case "5" -> {
+                    String longest = Message.getLongestMessage();
+                    JOptionPane.showMessageDialog(null, "Longest message:\n" + longest);
+                }
+                case "6" -> {
+                    String hash = JOptionPane.showInputDialog("Enter message hash to delete:");
+                    String delResult = Message.deleteByHash(hash);
+                    JOptionPane.showMessageDialog(null, delResult);
+                }
+                case "0" -> running = false;
+                default -> JOptionPane.showMessageDialog(null, "Invalid option.");
+            }
         }
+
+        JOptionPane.showMessageDialog(null, "Goodbye!");
     }
 }
