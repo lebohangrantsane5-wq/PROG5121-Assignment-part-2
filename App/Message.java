@@ -1,8 +1,8 @@
-import javax.swing.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 public class Message {
 
@@ -23,7 +23,7 @@ public class Message {
     }
 
     // Generate Unique 10-digit Message ID
-    public void generateMessageID() {
+    public final void generateMessageID() {
         long id = (long) (Math.random() * 9000000000L) + 1000000000L;
         this.messageID = String.valueOf(id);
     }
@@ -85,19 +85,19 @@ public class Message {
 
     // Send / Store / Disregard message
     public String sendMessage(String option) {
-        switch (option.toLowerCase()) {
-            case "send":
+        return switch (option.toLowerCase()) {
+            case "send" -> {
                 totalMessagesSent++;
                 sentMessages.add(this);
-                return "Message successfully sent.";
-            case "store":
+                yield "Message successfully sent.";
+            }
+            case "store" -> {
                 storeMessage();
-                return "Message successfully stored.";
-            case "disregard":
-                return "Press 0 to delete message.";
-            default:
-                return "Invalid option.";
-        }
+                yield "Message successfully stored.";
+            }
+            case "disregard" -> "Press 0 to delete message.";
+            default -> "Invalid option.";
+        };
     }
 
     // Store message in JSON
