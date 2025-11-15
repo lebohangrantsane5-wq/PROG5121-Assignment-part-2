@@ -48,41 +48,35 @@ public class MessageApp {
             int choice = Integer.parseInt(JOptionPane.showInputDialog(menu));
 
             switch (choice) {
-                case 1:
+                case 1 -> {
                     if (messageCount >= totalMessages) {
                         JOptionPane.showMessageDialog(null, "You have already sent the maximum number of messages.");
-                        break;
+                    } else {
+                        Message message = new Message(messageCount + 1);
+
+                        String recipient = JOptionPane.showInputDialog("Enter recipient (+country code):");
+                        JOptionPane.showMessageDialog(null, message.checkRecipientCell(recipient));
+
+                        String text = JOptionPane.showInputDialog("Enter message (max 250 chars):");
+                        String lengthCheck = message.checkMessageLength(text);
+                        JOptionPane.showMessageDialog(null, lengthCheck);
+                        if (!lengthCheck.startsWith("Failure")) {
+                            message.createMessageHash();
+
+                            String option = JOptionPane.showInputDialog("Send, Store, or Disregard?");
+                            JOptionPane.showMessageDialog(null, message.sendMessage(option));
+
+                            JOptionPane.showMessageDialog(null, message.printMessage());
+                            messageCount++;
+                        }
                     }
-                    Message message = new Message(messageCount + 1);
-
-                    String recipient = JOptionPane.showInputDialog("Enter recipient (+country code):");
-                    JOptionPane.showMessageDialog(null, message.checkRecipientCell(recipient));
-
-                    String text = JOptionPane.showInputDialog("Enter message (max 250 chars):");
-                    String lengthCheck = message.checkMessageLength(text);
-                    JOptionPane.showMessageDialog(null, lengthCheck);
-                    if (lengthCheck.startsWith("Failure")) break;
-
-                    message.createMessageHash();
-
-                    String option = JOptionPane.showInputDialog("Send, Store, or Disregard?");
-                    JOptionPane.showMessageDialog(null, message.sendMessage(option));
-
-                    JOptionPane.showMessageDialog(null, message.printMessage());
-                    messageCount++;
-                    break;
-
-                case 2:
-                    JOptionPane.showMessageDialog(null, "Coming soon.");
-                    break;
-
-                case 3:
+                }
+                case 2 -> JOptionPane.showMessageDialog(null, "Coming soon.");
+                case 3 -> {
                     JOptionPane.showMessageDialog(null, "Exiting QuickChat. Goodbye!");
                     running = false;
-                    break;
-
-                default:
-                    JOptionPane.showMessageDialog(null, "Invalid selection. Try again.");
+                }
+                default -> JOptionPane.showMessageDialog(null, "Invalid selection. Try again.");
             }
         }
 
