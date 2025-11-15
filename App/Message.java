@@ -1,4 +1,3 @@
-import javax.swing.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 /**
  * Message model and storage logic. All static lists are used to satisfy the assignment arrays:
@@ -93,7 +93,7 @@ public class Message {
         }
     }
 
-    // Create Message Hash: first 2 digits of ID + ":" + messageNumber + ":" + first/last letters in caps
+    // Create Message Hash: first 2 digits of ID + ":" + number + ":" + first/last letters
     public String createMessageHash() {
         if (messageText == null || messageText.isEmpty()) {
             this.messageHash = messageID.substring(0, 2) + ":" + messageNumber + ":??";
@@ -125,13 +125,13 @@ public class Message {
             }
             case "disregard" -> {
                 disregardedMessages.add(this.messageText == null ? "" : this.messageText);
-                yield "Message was disregarded.";
+                yield "Press 0 to delete message.";   // REQUIRED BY JUnit test
             }
             default -> "Invalid option.";
         };
     }
 
-    // Store message in JSON (append)
+    // Store message in JSON file (append)
     public void storeMessage() {
         String json = "{"
                 + "\"messageID\":\"" + safeJson(messageID) + "\","
@@ -141,12 +141,9 @@ public class Message {
         try (FileWriter writer = new FileWriter("stored_messages.json", true)) {
             writer.write(json + System.lineSeparator());
         } catch (IOException e) {
-            // For desktop GUI usage we keep the JOptionPane message, but for tests it won't be invoked
             try {
                 JOptionPane.showMessageDialog(null, "Error storing message: " + e.getMessage());
-            } catch (java.awt.HeadlessException ignored) {
-                // ignore JOptionPane in headless environments
-            }
+            } catch (java.awt.HeadlessException ignored) {}
         }
     }
 
@@ -173,7 +170,7 @@ public class Message {
         return new ArrayList<>(sentMessages);
     }
 
-    // Return arrays for tests / UI
+    // Return requirement arrays
     public static List<String> getSentMessageTexts() {
         return new ArrayList<>(sentMessageTexts);
     }
@@ -198,10 +195,7 @@ public class Message {
         this.messageNumber = messageNumber;
     }
 
-    // ----- New features -----
-
-    // Load stored_messages.json into storedMessagesArray.
-    // Each line is a JSON object; we will store the full JSON line and also attempt to extract messageText.
+    // Load stored_messages.json into storedMessagesArray
     public static void loadStoredMessages() {
         storedMessagesArray.clear();
         Path path = Paths.get("stored_messages.json");
@@ -212,17 +206,16 @@ public class Message {
             for (String line : lines) {
                 String trimmed = line.trim();
                 if (trimmed.isEmpty()) continue;
-                // naive JSON parsing: try to extract messageText value
                 String extracted = extractJsonValue(trimmed, "messageText");
                 if (extracted == null) extracted = trimmed;
                 storedMessagesArray.add(extracted);
             }
         } catch (IOException e) {
-            // ignore read errors in this helper (tests will catch problem via file presence)
+            // ignore read errors
         }
     }
 
-    // Helper: extract a value from a single-line JSON like {"messageText":"hello","recipient":"..."}
+    // Extract JSON value
     private static String extractJsonValue(String jsonLine, String key) {
         String pattern = "\"" + key + "\"\\s*:\\s*\"";
         int idx = jsonLine.indexOf(pattern);
@@ -239,8 +232,7 @@ public class Message {
         return null;
     }
 
-    // a) Display the sender and recipient of all sent messages.
-    // (we don't have sender stored; assume "You" as sender)
+    // a) Display senders and recipients
     public static String displaySendersAndRecipients() {
         StringBuilder sb = new StringBuilder();
         for (Message m : sentMessages) {
@@ -250,7 +242,7 @@ public class Message {
         return sb.toString();
     }
 
-    // b) Display the longest sent message.
+    // b) Longest sent message
     public static String getLongestMessage() {
         if (sentMessageTexts.isEmpty()) return "No sent messages.";
         String longest = "";
@@ -260,7 +252,7 @@ public class Message {
         return longest;
     }
 
-    // c) Search for a message ID and display recipient + message.
+    // c) Search by message ID
     public static String searchByMessageID(String id) {
         if (id == null) return "No message found with that ID.";
         for (Message m : sentMessages) {
@@ -271,7 +263,7 @@ public class Message {
         return "No message found with that ID.";
     }
 
-    // d) Search for all the messages sent to a particular recipient.
+    // d) Search by recipient
     public static List<String> searchByRecipient(String cell) {
         List<String> results = new ArrayList<>();
         if (cell == null) return results;
@@ -283,13 +275,12 @@ public class Message {
         return results;
     }
 
-    // e) Delete a message using the message hash.
+    // e) Delete message by hash
     public static String deleteByHash(String hash) {
         if (hash == null) return "No message found with that hash.";
         for (int i = 0; i < sentMessages.size(); i++) {
             Message m = sentMessages.get(i);
             if (hash.equals(m.getMessageHash())) {
-                // remove from arrays
                 sentMessageTexts.remove(m.getMessageText());
                 messageHashes.remove(hash);
                 messageIDs.remove(m.getMessageID());
@@ -300,7 +291,7 @@ public class Message {
         return "No message found with that hash.";
     }
 
-    // f) Display a report that lists the full details of all the sent messages.
+    // f) Full report
     public static String displayFullReport() {
         StringBuilder sb = new StringBuilder();
         for (Message m : sentMessages) {
@@ -314,7 +305,7 @@ public class Message {
         return sb.toString();
     }
 
-    // Utility: clear in-memory storage (useful for tests)
+    // Utility: clear memory (for tests)
     public static void clearAllMemoryData() {
         sentMessages.clear();
         sentMessageTexts.clear();
